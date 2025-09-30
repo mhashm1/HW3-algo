@@ -36,11 +36,11 @@ Outcome brute(const vector<Point>& data) {
 #define CUTOFF 15         // you may change this, but please 
 
 
-// Helper function for the divide-and-conquer algorithm
+// Helper function for the divide and conquer algo
 Outcome closestPairRecursive(vector<Point>& pointsX, vector<Point>& pointsY) {
     int n = pointsX.size();
     
-    // Base case: use brute force for small sets
+    // This is the base case
     if (n <= CUTOFF) {
         return bruteUtility(pointsX.begin(), pointsX.end());
     }
@@ -63,15 +63,15 @@ Outcome closestPairRecursive(vector<Point>& pointsX, vector<Point>& pointsY) {
         }
     }
     
-    // Recursively find closest pairs in left and right halves
+    // recursively find closest pairs in left and right halves
     Outcome leftResult = closestPairRecursive(leftX, leftY);
     Outcome rightResult = closestPairRecursive(rightX, rightY);
     
-    // Find the minimum distance from both sides
+    // we find the minimum distance from both sides
     Outcome minResult = (leftResult.dsq < rightResult.dsq) ? leftResult : rightResult;
     long long minDistSq = minResult.dsq;
     
-    // Create strip of points close to the dividing line
+
     vector<Point> strip;
     for (const Point& p : pointsY) {
         long long dx = p.x - midPoint.x;
@@ -80,7 +80,7 @@ Outcome closestPairRecursive(vector<Point>& pointsX, vector<Point>& pointsY) {
         }
     }
     
-    // Check for closer pairs in the strip
+    // check for the closer pairs in the strip
     for (int i = 0; i < strip.size(); ++i) {
         for (int j = i + 1; j < strip.size() && (strip[j].y - strip[i].y) * (strip[j].y - strip[i].y) < minDistSq; ++j) {
             long long distSq = distSquared(strip[i], strip[j]);
@@ -94,17 +94,17 @@ Outcome closestPairRecursive(vector<Point>& pointsX, vector<Point>& pointsY) {
     return minResult;
 }
 
-// The student's implementation of the O(n log n) divide-and-conquer approach
+// our implementation of the O(n log n) divide-and-conquer approach
 Outcome efficient(const vector<Point>& data) {
     if (data.size() < 2) {
         return Outcome();
     }
     
-    // Create copies for sorting
+    // create copies for sorting
     vector<Point> pointsX = data;
     vector<Point> pointsY = data;
     
-    // Sort by x-coordinate and y-coordinate
+    // sort by x-coordinate and y-coordinate
     sort(pointsX.begin(), pointsX.end(), compareByX);
     sort(pointsY.begin(), pointsY.end(), compareByY);
     

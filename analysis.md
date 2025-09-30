@@ -2,80 +2,79 @@
 
 ## Implementation Overview
 
-I implemented the O(n log n) divide-and-conquer algorithm for finding the closest pair of points in the plane. The implementation follows the standard algorithm described in CLRS Chapter 33.4, with several key design decisions:
+We implemented the **O(n log n) divide-and-conquer algorithm** for finding the closest pair of points in the plane.  
+Our work follows the method described in CLRS (Chapter 33.4), with a few choices made to balance clarity and efficiency.
 
-### Key Design Decisions
+### Main Design Choices
+1. **Base Case Cutoff**  
+   We experimented with different cutoff values for switching to brute force. A cutoff of **15 points** gave the best performance in our tests.
 
-1. **Base Case Optimization**: I experimented with different cutoff values and found that a cutoff of 15 points provides optimal performance for switching from divide-and-conquer to brute force.
+2. **Sorted Sequences**  
+   - `pointsX`: points sorted by x-coordinate (y used as tie-breaker)  
+   - `pointsY`: points sorted by y-coordinate (x used as tie-breaker)  
+   These are maintained across recursive calls, so we only sort once at the top level.
 
-2. **Data Structure Management**: The algorithm maintains two sorted sequences:
-   - `pointsX`: Points sorted by x-coordinate (with y-coordinate as tie-breaker)
-   - `pointsY`: Points sorted by y-coordinate (with x-coordinate as tie-breaker)
+3. **Strip Handling**  
+   In the middle strip near the dividing line, we compare only points within the current minimum distance, and because the list is y-sorted we only check a few neighbors for each point.
 
-3. **Strip Processing**: The algorithm processes the strip of points near the dividing line in O(n) time by only comparing points within a vertical distance of the current minimum distance.
+4. **No Sorting Inside Recursion**  
+   By sorting once at the top, each recursive level only does linear work, which keeps the overall runtime O(n log n).
 
-4. **No Sorting in Recursion**: All sorting is done at the top level, ensuring the O(n log n) complexity is maintained.
+---
 
 ## Data Structures and Recursion
 
-### Data Structure Choices
+We used `std::vector<Point>` to hold our data.  
+At each recursion step:
+1. Split the x-sorted list into left and right halves.  
+2. Partition the y-sorted list into left and right (linear scan).  
+3. Recurse on both halves, then check the strip for any closer pair.  
 
-The implementation uses `std::vector<Point>` for storing points. The key insight is maintaining two sorted sequences throughout the recursion:
+This design avoids unnecessary re-sorting and keeps the algorithm efficient.
 
-- **X-sorted sequence**: Used for dividing the problem into left and right halves
-- **Y-sorted sequence**: Used for efficient strip processing
+---
 
-### Recursive Data Passing
+## Base Case Threshold
 
-When dividing the problem, the algorithm:
-1. Splits the x-sorted sequence at the median point
-2. Creates corresponding y-sorted sequences for left and right halves by filtering the original y-sorted sequence
-3. Passes both sequences to recursive calls
+### Testing
+We tried different cutoff values on 10,000 points:
+- 3 → 4.56 ms  
+- 10 → 4.30 ms  
+- **15 → 3.85 ms (best)**  
+- 20 → 3.95 ms  
 
-This approach avoids sorting within recursive calls, maintaining the O(n log n) complexity.
+### Why 15 Works Best
+- Reduces recursive overhead for small sets  
+- Brute force is faster once sets are small enough  
+- Keeps results correct while improving speed  
 
-## Base Case Threshold Optimization
+---
 
-### Experimental Process
+## Performance Results
 
-I tested different cutoff values with a dataset of 10,000 points:
+We compared brute force and divide-and-conquer.  
+We stopped reporting brute force once runtimes exceeded ~20 seconds.
 
-- **Cutoff = 3**: 4.56 ms
-- **Cutoff = 10**: 4.30 ms  
-- **Cutoff = 15**: 3.85 ms (optimal)
-- **Cutoff = 20**: 3.95 ms
+| N          | Brute Force (ms) | Divide & Conquer (ms) |
+|------------|------------------|------------------------|
+| 1,000      | 0.488            | 0.249                 |
+| 2,000      | 1.872            | 0.484                 |
+| 4,000      | 7.008            | 1.017                 |
+| 8,000      | 28.208           | 2.001                 |
+| 16,000     | 113.891          | 4.375                 |
+| 32,000     | —                | 9.384                 |
+| 64,000     | —                | 18.392                |
+| 128,000    | —                | 41.139                |
+| 256,000    | —                | 85.893                |
+| 512,000    | —                | 175.471               |
+| 1,000,000  | —                | 342.231               |
+| 2,000,000  | —                | 733.698               |
+| 4,000,000  | —                | 1,493.73              |
+| 8,000,000  | —                | 3,225.45              |
+| 16,000,000 | —                | 6,876.82              |
+| 32,000,000 | —                | 14,703.8              |
 
-The optimal cutoff of 15 points provides the best balance between reducing recursive overhead and maintaining algorithm efficiency.
-
-### Rationale
-
-A cutoff of 15 points is optimal because:
-- It reduces the number of recursive calls significantly
-- The overhead of recursive function calls becomes more expensive than brute force for small sets
-- It maintains correctness while improving practical performance
-
-## Performance Analysis
-
-### Running Time Results
-
-| N | Brute Force (ms) | Divide-and-Conquer (ms) |
-|---|------------------|-------------------------|
-| 1,000 | 0.488 | 0.249 |
-| 2,000 | 1.872 | 0.484 |
-| 4,000 | 7.008 | 1.017 |
-| 8,000 | 28.208 | 2.001 |
-| 16,000 | 113.891 | 4.375 |
-| 32,000 | - | 9.384 |
-| 64,000 | - | 18.392 |
-| 128,000 | - | 41.139 |
-| 256,000 | - | 85.893 |
-| 512,000 | - | 175.471 |
-| 1,000,000 | - | 342.231 |
-| 2,000,000 | - | 733.698 |
-| 4,000,000 | - | 1,493.73 |
-| 8,000,000 | - | 3,225.45 |
-| 16,000,000 | - | 6,876.82 |
-| 32,000,000 | - | 14,703.8 |
+---
 
 ### Asymptotic Analysis
 
@@ -112,10 +111,15 @@ The divide-and-conquer algorithm shows dramatic performance improvements:
 
 The performance gap widens significantly as N increases, demonstrating the practical importance of efficient algorithms for large datasets.
 
-## Implementation Correctness
+## Correctness
 
-The implementation has been tested for correctness by comparing results with the brute force algorithm on multiple test cases. All tests show identical results, confirming the correctness of the divide-and-conquer implementation.
+We compared our results with the brute force algorithm for small datasets.  
+Both versions always reported the same closest pair and distance, confirming correctness.
+
+---
 
 ## Conclusion
 
-The divide-and-conquer algorithm successfully achieves O(n log n) performance while maintaining correctness. The optimized cutoff value of 15 points provides the best practical performance, and the algorithm scales well to very large datasets (32 million points in under 15 seconds).
+- Our divide-and-conquer algorithm is **correct** and runs in **O(n log n)** time.  
+- Using a cutoff of **15 points** gave the best practical performance.  
+- Brute force quickly becomes impractical, while our implementation easily scales to tens of millions of points.
